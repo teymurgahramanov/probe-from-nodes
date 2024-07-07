@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask Web App</title>
+</head>
+<body>
+    <h1>Submit Data</h1>
+    <form action="/submit" method="post">
+        <label for="dropdown">Choose from list:</label>
+        <select name="dropdown" id="dropdown">
+            <option value="tcp">TCP</option>
+            <option value="http">HTTP</option>
+        </select>
+        <br>
+        <label for="text_input">Type form:</label>
+        <input type="text" id="text_input" name="text_input">
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
