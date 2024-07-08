@@ -9,12 +9,12 @@
     <h1>Results</h1>
     <table border="1">
         <tr>
-            <th>API URL</th>
+            <th>Host</th>
             <th>Result</th>
         </tr>
         {% for result in results %}
         <tr>
-            <td>{{ result.api_url }}</td>
+            <td>{{ result.host }}</td>
             <td>{{ result.result }}</td>
         </tr>
         {% endfor %}
