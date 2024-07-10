@@ -1,6 +1,5 @@
 apiVersion: v2
 name: probe-from-node
-description: A Helm chart for probe-from-node
+description: A Helm chart for deploying a Flask application
 type: application
 version: 0.1.0
-appVersion: "1.16.0"

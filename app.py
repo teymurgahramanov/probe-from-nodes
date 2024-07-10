@@ -2,6 +2,17 @@ from flask import Flask, render_template, request
 from kubernetes import client, config
 import requests
 
+exporters = {}
+config.load_kube_config()
+#config.load_incluster_config()
+v1 = client.CoreV1Api()
+#with open("/var/run/secrets/kubernetes.io/serviceaccount/namespace") as f:
+#    current_namespace = f.read().strip()
+label_selector = "app=from-node-exporter"
+pods = v1.list_namespaced_pod(namespace="default", label_selector=label_selector)
+for pod in pods.items:
+    exporters[pod.metadata.name] = {"host":f"{pod.status.host_ip}", "api_url": f"http://{pod.metadata.name}:8080/probe"}
+print(exporters)
 app = Flask(__name__)
 
 @app.route('/')
@@ -38,21 +49,4 @@ def submit():
     return render_template('result.html', results=results)
 
 if __name__ == '__main__':
-    exporters = {}
-    # Load the kubeconfig file
-    config.load_kube_config()
-
-    # Create an instance of the API class
-    v1 = client.CoreV1Api()
-
-    # Define the label selector
-    label_selector = "app=from-node-exporter"
-
-    # List all pods with the specified label
-    pods = v1.list_pod_for_all_namespaces(label_selector=label_selector)
-
-    # Iterate through the pods and print the pod name and host IP
-    for pod in pods.items:
-        exporters[pod.metadata.name] = {"host":f"{pod.status.host_ip}", "api_url": f"http://{pod.metadata.name}:8080/probe"}
-    print(exporters)
     app.run(debug=False)

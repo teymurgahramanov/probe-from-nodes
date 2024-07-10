@@ -1,36 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-{{- include "common.metadata" . | nindent 2 }}
-{{- if .Values.daemonsetAnnotations }}
-  {{- toYaml .Values.daemonsetAnnotations | nindent 4 }}
-{{- end }}
+  name: {{ include "probe-from-node.fullname" . }}
+  labels:
+    {{- include "probe-from-node.labels" . | nindent 4 }}
 spec:
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "common.labels" . | nindent 6 }}
-    {{- if .Values.podLabels }}
-      {{- toYaml .Values.podLabels | nindent 6 }}
-    {{- end }}
+      app: {{ include "probe-from-node.name" . }}
   template:
     metadata:
       labels:
-        {{- include "common.labels" . | nindent 8 }}
-      {{- if .Values.podLabels }}
-        {{- toYaml .Values.podLabels | nindent 8 }}
-      {{- end }}
-      annotations:
-      {{- if .Values.podAnnotations }}
-        {{- toYaml .Values.podAnnotations | nindent 8 }}
-      {{- end }}
+        {{- include "probe-from-node.labels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "object.name" . }}
+      serviceAccountName: {{ include "probe-from-node.serviceAccountName" . }}
       containers:
-        - name: {{ include "object.name" . }}
-          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: app
-              containerPort: 5000
+            - containerPort: 5000
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
