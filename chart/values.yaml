@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: probe-from-node
-  tag: v5.0.0
+  tag: v5.0.10
   pullPolicy: IfNotPresent
 
 serviceAccount:

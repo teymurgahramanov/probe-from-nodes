@@ -1,18 +1,17 @@
 from flask import Flask, render_template, request
 from kubernetes import client, config
+from os import environ
 import requests
 
-exporters = {}
-config.load_kube_config()
-#config.load_incluster_config()
+if environ.get('KP_LOCAL_DEBUG') == "1":
+    config.load_kube_config()
+    current_namespace = "default"
+else:
+    config.load_incluster_config()
+    with open("/var/run/secrets/kubernetes.io/serviceaccount/namespace") as f:
+        current_namespace = f.read().strip()
 v1 = client.CoreV1Api()
-#with open("/var/run/secrets/kubernetes.io/serviceaccount/namespace") as f:
-#    current_namespace = f.read().strip()
-label_selector = "app=from-node-exporter"
-pods = v1.list_namespaced_pod(namespace="default", label_selector=label_selector)
-for pod in pods.items:
-    exporters[pod.metadata.name] = {"host":f"{pod.status.host_ip}", "api_url": f"http://{pod.metadata.name}:8080/probe"}
-print(exporters)
+label_selector = environ.get('KP_EXPORTER_LABEL_SELECTOR') or "app=from-node-exporter"
 app = Flask(__name__)
 
 @app.route('/')
@@ -21,23 +20,30 @@ def index():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    dropdown_value = request.form['dropdown']
-    text_input = request.form['text_input']
-    timeout = int(request.form.get('timeout', 15))
+    module = "tcp"
+    address = request.form['address']
+    timeout = 5
+
+    exporters = {}
     results = []
+    pods = v1.list_namespaced_pod(namespace="default", label_selector=label_selector)
+    for pod in pods.items:
+        exporters[pod.metadata.name] = {"host":f"{pod.status.host_ip}", "api_url": f"http://{pod.status.pod_ip}:8080/probe"}
 
     for exporter in exporters.values():
         data = {
-            "dropdown_value": dropdown_value,
-            "text_input": text_input,
+            "module": module,
+            "address": address,
             "timeout": timeout
         }
         try:
-            response = requests.post(exporter["api_url"], json=data, timeout=10)
+            response = requests.post(exporter["api_url"], json=data, timeout=timeout)
+            print(response)
             response_data = response.json()
-            result = response_data.get("result", False)
             if "error" in response_data:
                 result = response_data["error"]
+            else:
+                result = response_data.get("result", False)
         except requests.exceptions.RequestException as e:
             result = str(e)
 
@@ -46,7 +52,7 @@ def submit():
             "result": result
         })
 
-    return render_template('result.html', results=results)
+    return render_template('index.html', results=results)
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run()
