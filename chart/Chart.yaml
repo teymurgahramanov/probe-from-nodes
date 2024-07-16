@@ -1,5 +1,5 @@
 apiVersion: v2
-name: probe-from-node
-description: A Helm chart for deploying a Flask application
+name: kubeping
+description: A Helm chart for deploying a KubePing
 type: application
 version: 0.1.0

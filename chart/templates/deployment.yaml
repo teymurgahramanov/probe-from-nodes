@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "probe-from-node.fullname" . }}
-  labels:
-    {{- include "probe-from-node.labels" . | nindent 4 }}
+  {{- include "common.metadata" (list $ (dict "labelsPath" "deployment.labels" "annotationsPath" "deployment.annotations")) | nindent 2 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "probe-from-node.name" . }}
+      app: {{ include "object.name" ( list $ "") }}
   template:
     metadata:
       labels:
-        {{- include "probe-from-node.labels" . | nindent 8 }}
+        {{- include "common.labels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "probe-from-node.serviceAccountName" . }}
+      serviceAccountName: {{ include "object.name" ( list $ "") }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ include "object.name" ( list $ "") }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 5000
+          env:
+            {{- toYaml .Values.env | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
