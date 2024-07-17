@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KubePing</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>KubePing</h1>
+        <form action="/submit" method="post">
+            <input type="text" id="address" name="address" placeholder="host:port">
+            <input type="submit" value="Ping">
+        </form>
+        {% if results %}
+        <table>
+            <tr>
+                <th>Host</th>
+                <th>Result</th>
+            </tr>
+            {% for result in results %}
+            <tr>
+                <td>{{ result.host }}</td>
+                <td>
+                    {% if result.result == true %}
+                        ✅
+                    {% elif result.result == false %}
+                        ❌
+                    {% else %}
+                        {{ result.result }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% endif %}
+    </div>
+</body>
+</html>
