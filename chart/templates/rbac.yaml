@@ -1,23 +1,26 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  {{- include "common.metadata" (list $ (dict)) | nindent 2 }}
+  name: {{ include "kubeping.fullname" . }}
+  labels:
+    {{- include "kubeping.labels" . | nindent 4 }}
 rules:
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["get", "list", "watch"]
+
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "object.name" ( list $ "") }}
+  name: {{ include "kubeping.fullname" . }}
   labels:
-    {{- include "common.labels" . | nindent 4 }}
+    {{- include "kubeping.labels" . | nindent 4 }}
 subjects:
 - kind: ServiceAccount
-  name: {{ include "object.name" ( list $ "" ) }}
+  name: {{ include "kubeping.serviceAccountName" . }}
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
-  name: {{ include "object.name" ( list $ "" ) }}
+  name: {{ include "kubeping.fullname" . }}
   apiGroup: rbac.authorization.k8s.io

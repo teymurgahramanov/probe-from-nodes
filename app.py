@@ -26,31 +26,37 @@ def submit():
 
     exporters = {}
     results = []
-    pods = v1.list_namespaced_pod(namespace="default", label_selector=label_selector)
-    for pod in pods.items:
-        exporters[pod.metadata.name] = {"host":f"{pod.status.host_ip}", "api_url": f"http://{pod.status.pod_ip}:8080/probe"}
-
-    for exporter in exporters.values():
-        data = {
-            "module": module,
-            "address": address,
-            "timeout": timeout
-        }
-        try:
-            response = requests.post(exporter["api_url"], json=data, timeout=timeout)
-            print(response)
-            response_data = response.json()
-            if "error" in response_data:
-                result = response_data["error"]
-            else:
-                result = response_data.get("result", False)
-        except requests.exceptions.RequestException as e:
-            result = str(e)
-
+    pods = v1.list_namespaced_pod(namespace=current_namespace, label_selector=label_selector)
+    if not pods.items:
         results.append({
-            "host": exporter["host"],
-            "result": result
+            "host": 0,
+            "result": f"Can't find from-node-exporter pods with label selector {label_selector}"
         })
+    else:
+        for pod in pods.items:
+            exporters[pod.metadata.name] = {"host":f"{pod.status.host_ip}", "api_url": f"http://{pod.status.pod_ip}:8080/probe"}
+
+        for exporter in exporters.values():
+            data = {
+                "module": module,
+                "address": address,
+                "timeout": timeout
+            }
+            try:
+                response = requests.post(exporter["api_url"], json=data, timeout=timeout)
+                print(response)
+                response_data = response.json()
+                if "error" in response_data:
+                    result = response_data["error"]
+                else:
+                    result = response_data.get("result", False)
+            except requests.exceptions.RequestException as e:
+                result = str(e)
+
+            results.append({
+                "host": exporter["host"],
+                "result": result
+            })
 
     return render_template('index.html', results=results)
 

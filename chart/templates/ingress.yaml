@@ -1,21 +1,28 @@
+
 {{- if .Values.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  {{- include "common.metadata" (list $ (dict "labelsPath" "ingress.labels" "annotationsPath" "ingress.annotations")) | nindent 2 }}
+  name: {{ include "kubeping.fullname" . }}
+  annotations:
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
 spec:
   {{- if .Values.ingress.className }}
   ingressClassName: {{ .Values.ingress.className }}
   {{- end }}
   rules:
-    - host: {{ .Values.ingress.host }}
+    - host: {{ .Values.ingress.hostname }}
       http:
         paths:
           - path: /
-            pathType: Exact
+            pathType: Prefix
             backend:
               service:
-                name: {{ include "object.name" ( list $ "") }}
+                name: {{ include "kubeping.fullname" . }}
                 port:
-                  number: 5000
+                  number: {{ .Values.service.port }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- toYaml .Values.ingress.tls | nindent 4 }}
+  {{- end }}
 {{- end }}

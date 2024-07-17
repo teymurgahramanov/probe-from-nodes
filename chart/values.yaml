@@ -1,33 +1,36 @@
 replicaCount: 1
 
 image:
-  repository: probe-from-node
-  tag: v5.0.10
+  repository: teymurgahramanov/kubeping
+  tag: "v1.0.0"
   pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: true
+  className: ""
+  hostname: kubeping.example.com
+  annotations: {}
+  tls: []
 
 serviceAccount:
   create: true
   name: ""
 
-service:
-  type: ClusterIP
-  port: 5000
+resources:
+  limits:
+    cpu: 100m
+    memory: 500Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
 
-ingress:
-  enabled: true
-  className: "nginx"
-  annotations: {}
-  hosts:
-    - host: flask-app.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
+env:
+  - name: KP_EXPORTER_LABEL_SELECTOR # Label selector by which from-node-exporter pods will be discovered.
+    value: "app=from-node-exporter" # Default
 
-resources: {}
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
+labels: {}
+annotations: {}

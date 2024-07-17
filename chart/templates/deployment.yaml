@@ -1,25 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  {{- include "common.metadata" (list $ (dict "labelsPath" "deployment.labels" "annotationsPath" "deployment.annotations")) | nindent 2 }}
+  name: {{ include "kubeping.fullname" . }}
+  labels:
+    {{- include "kubeping.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "object.name" ( list $ "") }}
+      {{- include "kubeping.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "common.labels" . | nindent 8 }}
+        {{- include "kubeping.selectorLabels" . | nindent 8 }}
+      annotations:
+        {{- toYaml .Values.annotations | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "object.name" ( list $ "") }}
+      serviceAccountName: {{ include "kubeping.serviceAccountName" . }}
       containers:
-        - name: {{ include "object.name" ( list $ "") }}
+        - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: 5000
+            - containerPort: {{ .Values.service.port }}
           env:
-            {{- toYaml .Values.env | nindent 12 }}
+            {{- range .Values.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
