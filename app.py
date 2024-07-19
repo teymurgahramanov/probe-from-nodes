@@ -43,7 +43,7 @@ def submit():
                 "timeout": timeout
             }
             try:
-                response = requests.post(exporter["api_url"], json=data, timeout=timeout)
+                response = requests.post(exporter["api_url"], json=data, timeout=10)
                 print(response)
                 response_data = response.json()
                 if "error" in response_data:
