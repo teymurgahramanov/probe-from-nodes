@@ -10,7 +10,11 @@
     <div class="container">
         <h1>KubePing</h1>
         <form action="/submit" method="post">
-            <input type="text" id="address" name="address" placeholder="host:port">
+            <input type="text" 
+                id="address" 
+                name="address" 
+                placeholder="host:port"
+            >
             <input type="submit" value="Ping">
         </form>
         {% if results %}
@@ -25,8 +29,6 @@
                 <td>
                     {% if result.result == true %}
                         ✅
-                    {% elif result.result == false %}
-                        ❌
                     {% else %}
                         {{ result.result }}
                     {% endif %}
@@ -35,6 +37,9 @@
             {% endfor %}
         </table>
         {% endif %}
+    </div>
+    <div class="footer">
+        <p>Timeout: {{ timeout }}s | Version: {{ version }} | <a href="https://github.com/teymurgahramanov/KubePing">GitHub</a></p>
     </div>
 </body>
 </html>

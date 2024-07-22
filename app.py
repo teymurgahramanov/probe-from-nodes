@@ -1,10 +1,10 @@
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, redirect, url_for
 from kubernetes import client, config
-from os import environ
+from os import getenv,urandom
 import requests
 import concurrent.futures
 
-if environ.get('KP_LOCAL_DEBUG') == "1":
+if getenv('KP_LOCAL_DEBUG') == "1":
     config.load_kube_config()
     current_namespace = "default"
 else:
@@ -13,20 +13,23 @@ else:
         current_namespace = f.read().strip()
 
 v1 = client.CoreV1Api()
-label_selector = environ.get('KP_EXPORTER_LABEL_SELECTOR') or "app=from-node-exporter"
+label_selector = getenv('KP_EXPORTER_LABEL_SELECTOR',"app=from-node-exporter")
+probe_timeout = int(getenv('KP_PROBE_TIMEOUT','3'))
+kp_version = 'v1.0.0'
 app = Flask(__name__)
-app.secret_key = 'BAD_SECRET_KEY'
+app.secret_key = urandom(24)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    results = session.get('results', [])
+    return render_template('index.html', timeout=probe_timeout, version=kp_version, results=results)
 
 @app.route('/submit', methods=['POST'])
 def submit():
     data = {
         "module": "tcp",
         "address": request.form['address'],
-        "timeout": 5
+        "timeout": probe_timeout
     }
     exporters = {}
     session['results'] = []
@@ -51,17 +54,15 @@ def submit():
                 if result:
                     session['results'].append(result)
 
-    return render_template('index.html', results=session['results'])
+    return redirect(url_for('index'))
 
 def probe(exporter, data):
     try:
-        response = requests.post(exporter["api_url"], json=data, timeout=10)
+        response = requests.post(exporter["api_url"], json=data, timeout=data['timeout']*2)
         response_data = response.json()
         result = response_data.get("result", response_data.get("error", "Unknown error"))
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         result = str(e)
-    except ValueError:
-        result = "Invalid response from server"
 
     return {
         "host": exporter["host"],
