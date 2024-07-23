@@ -21,8 +21,7 @@ app.secret_key = urandom(24)
 
 @app.route('/')
 def index():
-    results = session.get('results', [])
-    return render_template('index.html', timeout=probe_timeout, version=kp_version, results=results)
+    return render_template('index.html', timeout=probe_timeout, version=kp_version)
 
 @app.route('/submit', methods=['POST'])
 def submit():
@@ -54,13 +53,13 @@ def submit():
                 if result:
                     session['results'].append(result)
 
-    return redirect(url_for('index'))
+    return render_template('index.html', timeout=probe_timeout, version=kp_version, results=session['results'])
 
 def probe(exporter, data):
     try:
         response = requests.post(exporter["api_url"], json=data, timeout=data['timeout']*2)
         response_data = response.json()
-        result = response_data.get("result", response_data.get("error", "Unknown error"))
+        result = response_data.get("error", response_data.get("result"))
     except Exception as e:
         result = str(e)
 
