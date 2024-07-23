@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: teymurgahramanov/kubeping
-  tag: "v1.0.0"
+  tag: v1.0.0
   pullPolicy: IfNotPresent
 
 service:
