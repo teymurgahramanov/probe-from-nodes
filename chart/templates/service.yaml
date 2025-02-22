@@ -1,13 +1,18 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "kubeping.fullname" . }}
-  labels:
-    {{- include "kubeping.labels" . | nindent 4 }}
+{{- include "common.metadata" . | nindent 2 }}
+{{- if .Values.serviceAnnotations }}
+  {{- toYaml .Values.serviceAnnotations | nindent 4 }}
+{{- end }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.serviceType | default "ClusterIP" }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.port }}
+    - port: {{ .Values.config.exporter.metricsListenPort | default 8080 }}
+      targetPort: {{ .Values.config.exporter.metricsListenPort | default 8080 }}
+      protocol: TCP
   selector:
-    {{- include "kubeping.selectorLabels" . | nindent 4 }}
+    {{- include "common.labels" . | nindent 4 }}
+  {{- if .Values.podLabels }}
+    {{- toYaml .Values.podLabels | nindent 4 }}
+  {{- end }}

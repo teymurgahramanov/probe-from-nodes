@@ -1,6 +1,12 @@
 apiVersion: v2
-name: kubeping
-description: A Helm chart for KubePing
+name: from-node-exporter
+description: A Helm chart for Prometheus from-node-exporter
 type: application
-version: 0.1.0
-appVersion: "v1.0.0"
+version: 1.0.0
+appVersion: "v0.3.0"
+home: https://github.com/teymurgahramanov/from-node-exporter
+sources:
+  - https://github.com/teymurgahramanov/from-node-exporter
+maintainers:
+  - email: teymur_gahramanov@outlook.com
+    name: Teymur Gahramanov

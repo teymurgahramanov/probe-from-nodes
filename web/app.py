@@ -1,27 +1,26 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 from kubernetes import client, config
-from os import getenv,urandom
+from config import config
 import requests
 import concurrent.futures
 
-if getenv('KP_LOCAL_DEBUG') == "1":
-    config.load_kube_config()
-    current_namespace = "default"
-else:
-    config.load_incluster_config()
-    with open("/var/run/secrets/kubernetes.io/serviceaccount/namespace") as f:
-        current_namespace = f.read().strip()
-
+config.load_incluster_config()
+with open("/var/run/secrets/kubernetes.io/serviceaccount/namespace") as f:
+    current_namespace = f.read().strip()
 v1 = client.CoreV1Api()
-label_selector = getenv('KP_EXPORTER_LABEL_SELECTOR',"app=from-node-exporter")
-probe_timeout = int(getenv('KP_PROBE_TIMEOUT','3'))
-kp_version = 'v1.0.0'
+
+label_selector = config.EXPORTER_PODS_LABEL_SELECTOR
+exporter_port = config.EXPORTER_PORT
+exporter_path = config.EXPORTER_PATH
+probe_timeout = config.WEB_PROBE_TIMEOUT
+app_version = config.APP_VERSION
+
 app = Flask(__name__)
-app.secret_key = urandom(24)
+app.secret_key = config.WEB_SECRET_KEY
 
 @app.route('/')
 def index():
-    return render_template('index.html', timeout=probe_timeout, version=kp_version)
+    return render_template('index.html', timeout=probe_timeout, version=app_version)
 
 @app.route('/submit', methods=['POST'])
 def submit():
@@ -43,7 +42,7 @@ def submit():
         for pod in pods.items:
             exporters[pod.metadata.name] = {
                 "host": pod.status.host_ip,
-                "api_url": f"http://{pod.status.pod_ip}:8080/probe"
+                "api_url": f"http://{pod.status.pod_ip}:{exporter_port}{exporter_path}"
             }
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -53,7 +52,7 @@ def submit():
                 if result:
                     session['results'].append(result)
 
-    return render_template('index.html', timeout=probe_timeout, version=kp_version, results=session['results'])
+    return render_template('index.html', timeout=probe_timeout, version=app_version, results=session['results'])
 
 def probe(exporter, data):
     try:
