@@ -1,3 +1,7 @@
+global:
+  imagePullSecrets: []
+  imagePullPolicy: IfNotPresent
+
 web:
   image:
     repository: teymurgahramanov/kubeping
@@ -27,6 +31,11 @@ web:
       value: "app=from-node-exporter" # Default
   labels: {}
   annotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
 
 exporter:
   image:
@@ -52,6 +61,8 @@ exporter:
   resources: {}
   volumes: {}
   volumeMounts: {}
+  podSecurityContext: {}
+  securityContext: {}
 
 
 
