@@ -1,36 +1,57 @@
-replicaCount: 1
-
-image:
-  repository: teymurgahramanov/kubeping
-  tag: v1.0.0
-  pullPolicy: IfNotPresent
-
-service:
-  type: ClusterIP
-  port: 8000
-
-ingress:
-  enabled: true
-  className: ""
-  hostname: kubeping.example.com
+web:
+  image:
+    repository: teymurgahramanov/kubeping
+    tag: v1.0.0
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8000
+  ingress:
+    enabled: true
+    className: ""
+    hostname: kubeping.example.com
+    annotations: {}
+    tls: []
+  serviceAccount:
+    create: true
+    name: ""
+  resources:
+    limits:
+      cpu: 100m
+      memory: 500Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  env:
+    - name: KP_EXPORTER_LABEL_SELECTOR # Label selector by which from-node-exporter pods will be discovered.
+      value: "app=from-node-exporter" # Default
+  labels: {}
   annotations: {}
-  tls: []
 
-serviceAccount:
-  create: true
-  name: ""
+exporter:
+  image:
+    repository: teymurgahramanov/from-node-exporter
+    pullPolicy: IfNotPresent
+    tag: v0.2.0
+  config:
+    exporter: {}
+    targets: {}
+  serviceType: ClusterIP
+  labels: {}
+  # Common labels
+  annotations: {}
+  # Common annotations
+  daemonsetAnnotations: {}
+  podLabels: {}
+  podAnnotations: {}
+  configMapAnnotations: {}
+  serviceMapAnnotations: {}
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  resources: {}
+  volumes: {}
+  volumeMounts: {}
 
-resources:
-  limits:
-    cpu: 100m
-    memory: 500Mi
-  requests:
-    cpu: 100m
-    memory: 128Mi
 
-env:
-  - name: KP_EXPORTER_LABEL_SELECTOR # Label selector by which from-node-exporter pods will be discovered.
-    value: "app=from-node-exporter" # Default
 
-labels: {}
-annotations: {}
