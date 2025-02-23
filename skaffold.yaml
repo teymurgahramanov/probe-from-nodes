@@ -1,0 +1,37 @@
+---
+apiVersion: skaffold/v3
+kind: Config
+metadata:
+  name: jrunner
+
+build:
+  artifacts:
+  - image: kubeping-exporter
+    context: ./exporter
+    docker:
+      dockerfile: Dockerfile
+  - image: kubeping-web
+    context: ./web
+    docker:
+      dockerfile: Dockerfile
+
+deploy:
+  helm:
+    releases:
+    - name: kubeping
+      namespace: kubeping
+      createNamespace: true
+      chartPath: ./helm
+      setValueTemplates:
+        api.image.repository: "{{ .IMAGE_REPO_jrunner_api }}"
+        api.image.tag: "{{ .IMAGE_TAG_jrunner_api }}"
+        api.worker.image.repository: "{{ .IMAGE_REPO_jrunner_worker }}"
+        api.worker.image.tag: "{{ .IMAGE_TAG_jrunner_worker }}"
+      valuesFiles: 
+        - values-dev.yaml
+
+profiles:
+  - name: docker-desktop
+    activation:
+      - kubeContext: docker-desktop
+        command: dev

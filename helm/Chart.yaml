@@ -4,3 +4,8 @@ description: A Helm chart for KubePing
 type: application
 version: 0.1.0
 appVersion: "v1.0.0"
+sources:
+  - https://github.com/teymurgahramanov/from-node-exporter
+maintainers:
+  - email: teymur_gahramanov@outlook.com
+    name: Teymur Gahramanov
